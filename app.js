@@ -17,34 +17,49 @@ app.use(express.static(path.join(__dirname, 'public')));
 
 // Hiển thị giao diện chính và duyệt thư mục
 app.get('/', async (req, res) => {
+    // Xác định đường dẫn hiện tại
     const currentDir = req.query.dir ? path.join(baseDir, req.query.dir) : baseDir;
-    const items = await fs.readdir(currentDir, { withFileTypes: true });
 
-    // Lấy danh sách files và kích thước của từng file
-    const files = await Promise.all(items
-        .filter(item => !item.isDirectory())
-        .map(async file => {
-            const filePath = path.join(currentDir, file.name);
-            const stats = await fs.stat(filePath);
-            return { name: file.name, type: 'file', size: stats.size }; // thêm kích thước file
-        })
-    );
+    // Kiểm tra xem thư mục có tồn tại không
+    try {
+        await fs.access(currentDir); // Kiểm tra quyền truy cập vào thư mục
+    } catch (error) {
+        console.error("Thư mục không tồn tại, chuyển hướng về trang chủ:", error);
+        return res.redirect('/'); // Nếu không tồn tại, chuyển hướng về trang chủ
+    }
 
-    // Lấy danh sách directories
-    const directories = items
-        .filter(item => item.isDirectory())
-        .map(dir => ({ name: dir.name, type: 'directory' }));
+    try {
+        const items = await fs.readdir(currentDir, { withFileTypes: true });
 
-    // Chuyển đường dẫn thành breadcrumb
-    const relativeDir = path.relative(baseDir, currentDir);
-    const breadcrumb = relativeDir
-        ? relativeDir.split(path.sep).map((dir, index, arr) => ({
-            name: dir,
-            path: arr.slice(0, index + 1).join('/')
-        }))
-        : [];
+        // Lấy danh sách files và kích thước của từng file
+        const files = await Promise.all(items
+            .filter(item => !item.isDirectory())
+            .map(async file => {
+                const filePath = path.join(currentDir, file.name);
+                const stats = await fs.stat(filePath);
+                return { name: file.name, type: 'file', size: stats.size }; // thêm kích thước file
+            })
+        );
 
-    res.render('index', { files, directories, currentDir: req.query.dir || '', breadcrumb });
+        // Lấy danh sách directories
+        const directories = items
+            .filter(item => item.isDirectory())
+            .map(dir => ({ name: dir.name, type: 'directory' }));
+
+        // Chuyển đường dẫn thành breadcrumb
+        const relativeDir = path.relative(baseDir, currentDir);
+        const breadcrumb = relativeDir
+            ? relativeDir.split(path.sep).map((dir, index, arr) => ({
+                name: dir,
+                path: arr.slice(0, index + 1).join('/')
+            }))
+            : [];
+
+        res.render('index', { files, directories, currentDir: req.query.dir || '', breadcrumb });
+    } catch (error) {
+        console.error("Không thể đọc thư mục:", error);
+        return res.status(500).send("Không thể đọc thư mục");
+    }
 });
 
 // Tạo thư mục mới
