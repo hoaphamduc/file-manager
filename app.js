@@ -20,9 +20,17 @@ app.get('/', async (req, res) => {
     const currentDir = req.query.dir ? path.join(baseDir, req.query.dir) : baseDir;
     const items = await fs.readdir(currentDir, { withFileTypes: true });
 
-    const files = items
+    // Lấy danh sách files và kích thước của từng file
+    const files = await Promise.all(items
         .filter(item => !item.isDirectory())
-        .map(file => ({ name: file.name, type: 'file' }));
+        .map(async file => {
+            const filePath = path.join(currentDir, file.name);
+            const stats = await fs.stat(filePath);
+            return { name: file.name, type: 'file', size: stats.size }; // thêm kích thước file
+        })
+    );
+
+    // Lấy danh sách directories
     const directories = items
         .filter(item => item.isDirectory())
         .map(dir => ({ name: dir.name, type: 'directory' }));
