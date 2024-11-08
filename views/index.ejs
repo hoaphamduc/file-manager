@@ -1,14 +1,18 @@
 <!DOCTYPE html>
-<html lang="en" x-data="{ showModal: false, showCreateFolderModal: false, showUploadFileModal: false, itemName: '', isUploading: false, files: [], uploadProgress: {} }">
+<html lang="en"
+    x-data="{ showModal: false, showCreateFolderModal: false, showUploadFileModal: false, itemName: '', isUploading: false, files: [], uploadProgress: {} }">
+
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>File Manager</title>
+    <title>File Manager | Languru</title>
     <!-- Tailwind CSS -->
     <link href="https://cdn.jsdelivr.net/npm/tailwindcss@2.2.19/dist/tailwind.min.css" rel="stylesheet">
     <!-- Alpine.js -->
     <script src="https://cdn.jsdelivr.net/npm/alpinejs@3.7.0/dist/cdn.min.js" defer></script>
+    <link rel="shortcut icon" href="/folder-regular.svg" type="image/x-icon">
 </head>
+
 <body class="bg-gray-100 p-8 font-sans">
     <div class="container mx-auto">
         <h1 class="text-3xl font-bold text-center mb-6">File Manager</h1>
@@ -16,82 +20,103 @@
         <!-- Breadcrumb -->
         <nav class="text-sm mb-6">
             <a href="/" class="text-blue-500">Home</a>
-            <% breadcrumb.forEach((dir) => { %>
+            <% breadcrumb.forEach((dir)=> { %>
                 <span class="mx-1">/</span>
-                <a href="?dir=<%= dir.path %>" class="text-blue-500"><%= dir.name %></a>
-            <% }) %>
+                <a href="?dir=<%= dir.path %>" class="text-blue-500">
+                    <%= dir.name %>
+                </a>
+                <% }) %>
         </nav>
 
         <!-- Nút Tạo Thư Mục và Tải Lên Tệp -->
         <div class="mb-4 flex space-x-2">
-            <button @click="showCreateFolderModal = true" class="bg-blue-500 text-white py-2 px-4 rounded hover:bg-blue-600">Tạo Thư Mục</button>
-            <button @click="showUploadFileModal = true" class="bg-green-500 text-white py-2 px-4 rounded hover:bg-green-600">Tải Lên Tệp</button>
+            <button @click="showCreateFolderModal = true"
+                class="bg-blue-500 text-white py-2 px-4 rounded hover:bg-blue-600">Tạo Thư Mục</button>
+            <button @click="showUploadFileModal = true"
+                class="bg-green-500 text-white py-2 px-4 rounded hover:bg-green-600">Tải Lên Tệp</button>
         </div>
 
         <!-- Form Xóa Mục Đã Chọn -->
         <form action="/delete-selected" method="POST" id="deleteSelectedForm" class="mb-6">
             <input type="hidden" name="currentDir" value="<%= currentDir %>">
-            <button type="submit" class="bg-red-500 text-white py-2 px-4 rounded hover:bg-red-600 mb-4">Xóa Mục Đã Chọn</button>
+            <button type="submit" class="bg-red-500 text-white py-2 px-4 rounded hover:bg-red-600 mb-4">Xóa Mục Đã
+                Chọn</button>
 
             <!-- Hiển thị thư mục và file -->
             <div class="grid grid-cols-1 sm:grid-cols-2 md:grid-cols-3 lg:grid-cols-4 gap-4">
-                <% directories.forEach((dir) => { %>
+                <% directories.forEach((dir)=> { %>
                     <div class="border border-gray-300 rounded p-4 bg-white shadow">
                         <input type="checkbox" name="selectedItems[]" value="<%= dir.name %>" class="mr-2">
-                        <a href="/navigate?dir=<%= currentDir ? currentDir + '/' + dir.name : dir.name %>" class="block text-lg font-bold text-gray-700 mb-2">
+                        <a href="/navigate?dir=<%= currentDir ? currentDir + '/' + dir.name : dir.name %>"
+                            class="block text-lg font-bold text-gray-700 mb-2">
                             <img src="/folder-regular.svg" alt="Folder" class="inline-block mr-2 h-6">
                             <%= dir.name %>
                         </a>
-                        <button type="button" class="text-sm text-gray-500 underline" @click="showModal = true; itemName = '<%= dir.name %>'">Đổi Tên</button>
+                        <button type="button" class="text-sm text-gray-500 underline"
+                            @click="showModal = true; itemName = '<%= dir.name %>'">Đổi Tên</button>
                     </div>
-                <% }) %>
-                <% files.forEach((file) => { %>
-                    <div class="border border-gray-300 rounded p-4 bg-white shadow">
-                        <% 
-                            const ext = file.name.split('.').pop().toLowerCase(); 
-                            const filePath = `/uploads/${currentDir ? currentDir + '/' + file.name : file.name}`;
-                            const fileNameWithoutExt = file.name.replace(/\.[^/.]+$/, ""); // Xóa phần mở rộng
-                        %>
-                        <input type="checkbox" name="selectedItems[]" value="<%= file.name %>" class="mr-2">
-                        <% if (['jpg', 'jpeg', 'png', 'gif'].includes(ext)) { %>
-                            <img src="<%= filePath %>" alt="<%= fileNameWithoutExt %>" class="file-preview mb-2 w-full h-40 object-cover">
-                        <% } else if (['mp4', 'webm', 'ogg'].includes(ext)) { %>
-                            <video controls class="file-preview mb-2 w-full h-40 object-cover">
-                                <source src="<%= filePath %>" type="video/<%= ext %>">
-                            </video>
-                        <% } else if (['mp3', 'wav', 'ogg'].includes(ext)) { %>
-                            <audio controls class="file-preview mb-2 w-full">
-                                <source src="<%= filePath %>" type="audio/<%= ext %>">
-                            </audio>
-                        <% } else { %>
-                            <a href="<%= filePath %>" download class="text-lg font-bold text-gray-700"><%= fileNameWithoutExt %></a>
-                        <% } %>
+                    <% }) %>
+                        <% files.forEach((file)=> { %>
+                            <div class="border border-gray-300 rounded p-4 bg-white shadow">
+                                <% const ext=file.name.split('.').pop().toLowerCase(); const
+                                    filePath=`/uploads/${currentDir ? currentDir + '/' + file.name : file.name}`; const
+                                    fileNameWithoutExt=file.name.replace(/\.[^/.]+$/, "" ); // Xóa phần mở rộng %>
+                                    <input type="checkbox" name="selectedItems[]" value="<%= file.name %>" class="mr-2">
+                                    <% if (['jpg', 'jpeg' , 'png' , 'gif' ].includes(ext)) { %>
+                                        <img src="<%= filePath %>" alt="<%= fileNameWithoutExt %>"
+                                            class="file-preview mb-2 w-full h-40 object-cover">
+                                        <% } else if (['mp4', 'webm' , 'ogg' ].includes(ext)) { %>
+                                            <video controls class="file-preview mb-2 w-full h-40 object-cover">
+                                                <source src="<%= filePath %>" type="video/<%= ext %>">
+                                            </video>
+                                            <% } else if (['mp3', 'wav' , 'ogg' ].includes(ext)) { %>
+                                                <audio controls class="file-preview mb-2 w-full">
+                                                    <source src="<%= filePath %>" type="audio/<%= ext %>">
+                                                </audio>
+                                                <% } else { %>
+                                                    <a href="<%= filePath %>" download
+                                                        class="text-lg font-bold text-gray-700">
+                                                        <%= fileNameWithoutExt %>
+                                                    </a>
+                                                    <% } %>
 
-                        <!-- Hiển thị tên và dung lượng file -->
-                        <p class="mt-2 text-sm font-semibold text-gray-800" style="word-wrap: break-word;"><%= file.name %></p>
-                        <p class="text-xs text-gray-500">Dung lượng: <%= (file.size / 1024).toFixed(2) %> KB</p>
+                                                        <!-- Hiển thị tên và dung lượng file -->
+                                                        <p class="mt-2 text-sm font-semibold text-gray-800"
+                                                            style="word-wrap: break-word;">
+                                                            <%= file.name %>
+                                                        </p>
+                                                        <p class="text-xs text-gray-500">Dung lượng: <%= (file.size /
+                                                                1024).toFixed(2) %> KB</p>
 
-                        <div class="mt-2">
-                            <a href="<%= filePath %>" download class="text-blue-500 text-sm underline mr-4">Tải Xuống</a>
-                            <button type="button" class="text-sm text-gray-500 underline" @click="showModal = true; itemName = '<%= file.name %>'">Đổi Tên</button>
-                        </div>
-                    </div>
-                <% }) %>
+                                                        <div class="mt-2">
+                                                            <a href="<%= filePath %>" download
+                                                                class="text-blue-500 text-sm underline mr-4">Tải
+                                                                Xuống</a>
+                                                            <button type="button"
+                                                                class="text-sm text-gray-500 underline"
+                                                                @click="showModal = true; itemName = '<%= file.name %>'">Đổi
+                                                                Tên</button>
+                                                        </div>
+                            </div>
+                            <% }) %>
             </div>
         </form>
 
         <!-- Modal Tạo Thư Mục -->
-        <div x-show="showCreateFolderModal" class="fixed inset-0 flex items-center justify-center bg-gray-900 bg-opacity-50" style="display: none;">
+        <div x-show="showCreateFolderModal"
+            class="fixed inset-0 flex items-center justify-center bg-gray-900 bg-opacity-50" style="display: none;">
             <div class="bg-white p-6 rounded shadow-lg w-80">
                 <h4 class="text-lg font-semibold mb-4">Tạo Thư Mục Mới</h4>
                 <form action="/create-folder" method="POST">
                     <input type="hidden" name="currentDir" value="<%= currentDir %>">
                     <div class="mb-4">
                         <label for="folderName" class="block text-sm">Tên thư mục</label>
-                        <input type="text" name="folderName" id="folderName" required class="w-full p-2 border border-gray-300 rounded">
+                        <input type="text" name="folderName" id="folderName" required
+                            class="w-full p-2 border border-gray-300 rounded">
                     </div>
                     <div class="flex justify-end space-x-2">
-                        <button type="button" @click="showCreateFolderModal = false" class="bg-gray-300 text-gray-700 py-2 px-4 rounded">Hủy</button>
+                        <button type="button" @click="showCreateFolderModal = false"
+                            class="bg-gray-300 text-gray-700 py-2 px-4 rounded">Hủy</button>
                         <button type="submit" class="bg-blue-500 text-white py-2 px-4 rounded">Tạo</button>
                     </div>
                 </form>
@@ -99,37 +124,49 @@
         </div>
 
         <!-- Modal Tải Lên Tệp với Thanh Tiến Trình -->
-        <div x-show="showUploadFileModal" class="fixed inset-0 flex items-center justify-center bg-gray-900 bg-opacity-50" style="display: none;">
+        <div x-show="showUploadFileModal"
+            class="fixed inset-0 flex items-center justify-center bg-gray-900 bg-opacity-50" style="display: none;">
             <div class="bg-white p-6 rounded shadow-lg w-80">
                 <h4 class="text-lg font-semibold mb-4">Tải Lên Tệp</h4>
                 <form @submit.prevent="uploadFiles" enctype="multipart/form-data">
                     <input type="hidden" name="currentDir" value="<%= currentDir %>">
                     <div class="mb-4">
                         <label for="file" class="block text-sm">Chọn tệp</label>
-                        <input type="file" name="files" id="file" multiple required @change="files = $event.target.files" class="w-full p-2 border border-gray-300 rounded">
+                        <input type="file" name="files" id="file" multiple required
+                            @change="files = $event.target.files" class="w-full p-2 border border-gray-300 rounded">
                     </div>
 
-                    <!-- Thanh tiến trình cho từng file -->
-                    <template x-for="(file, index) in files" :key="index">
-                        <div class="mb-4">
-                            <p class="text-sm font-semibold" x-text="file.name + ' - ' + (file.size / 1024).toFixed(2) + ' KB'"></p>
-                            <div class="h-2 w-full bg-gray-200 rounded">
-                                <div :style="{ width: uploadProgress[file.name] + '%' }" class="h-full bg-green-500 rounded"></div>
+                    <!-- Container cho các thanh tiến trình -->
+                    <div class="max-h-48 overflow-y-auto mb-4">
+                        <template x-for="(file, index) in files" :key="index">
+                            <div class="mb-4">
+                                <p class="text-sm font-semibold"
+                                    x-text="file.name + ' - ' + (file.size / 1024).toFixed(2) + ' KB'"></p>
+                                <div class="h-2 w-full bg-gray-200 rounded">
+                                    <div :style="{ width: uploadProgress[file.name] + '%' }"
+                                        class="h-full bg-green-500 rounded"></div>
+                                </div>
+                                <p class="text-sm text-gray-500 mt-1"
+                                    x-text="'Đang tải lên: ' + (uploadProgress[file.name] || 0) + '%'"></p>
                             </div>
-                            <p class="text-sm text-gray-500 mt-1" x-text="'Đang tải lên: ' + (uploadProgress[file.name] || 0) + '%'"></p>
-                        </div>
-                    </template>
+                        </template>
+                    </div>
 
                     <div class="flex justify-end space-x-2">
-                        <button type="button" @click="showUploadFileModal = false" class="bg-gray-300 text-gray-700 py-2 px-4 rounded" :disabled="isUploading">Hủy</button>
-                        <button type="submit" class="bg-green-500 text-white py-2 px-4 rounded" :disabled="isUploading">Tải Lên</button>
+                        <button type="button" @click="showUploadFileModal = false"
+                            class="bg-gray-300 text-gray-700 py-2 px-4 rounded" :disabled="isUploading">Hủy
+                        </button>
+                        <button type="submit" class="bg-green-500 text-white py-2 px-4 rounded"
+                            :disabled="isUploading">Tải Lên
+                        </button>
                     </div>
                 </form>
             </div>
         </div>
 
         <!-- Modal Đổi Tên -->
-        <div x-show="showModal" class="fixed inset-0 flex items-center justify-center bg-gray-900 bg-opacity-50" style="display: none;">
+        <div x-show="showModal" class="fixed inset-0 flex items-center justify-center bg-gray-900 bg-opacity-50"
+            style="display: none;">
             <div class="bg-white p-6 rounded shadow-lg w-80">
                 <h4 class="text-lg font-semibold mb-4">Đổi Tên</h4>
                 <form action="/rename" method="POST" class="space-y-4">
@@ -137,10 +174,12 @@
                     <input type="hidden" name="oldName" :value="itemName">
                     <div>
                         <label for="newName" class="block text-sm">Tên mới</label>
-                        <input type="text" name="newName" id="newName" :value="itemName.replace(/\.[^/.]+$/, '')" required class="w-full p-2 border border-gray-300 rounded">
+                        <input type="text" name="newName" id="newName" :value="itemName.replace(/\.[^/.]+$/, '')"
+                            required class="w-full p-2 border border-gray-300 rounded">
                     </div>
                     <div class="flex justify-end space-x-2">
-                        <button type="button" @click="showModal = false" class="bg-gray-300 text-gray-700 py-2 px-4 rounded">Hủy</button>
+                        <button type="button" @click="showModal = false"
+                            class="bg-gray-300 text-gray-700 py-2 px-4 rounded">Hủy</button>
                         <button type="submit" class="bg-blue-500 text-white py-2 px-4 rounded">Lưu thay đổi</button>
                     </div>
                 </form>
@@ -187,4 +226,5 @@
         }
     </script>
 </body>
+
 </html>

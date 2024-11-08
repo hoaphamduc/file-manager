@@ -39,9 +39,9 @@ app.get('/', async (req, res) => {
     const relativeDir = path.relative(baseDir, currentDir);
     const breadcrumb = relativeDir
         ? relativeDir.split(path.sep).map((dir, index, arr) => ({
-              name: dir,
-              path: arr.slice(0, index + 1).join('/')
-          }))
+            name: dir,
+            path: arr.slice(0, index + 1).join('/')
+        }))
         : [];
 
     res.render('index', { files, directories, currentDir: req.query.dir || '', breadcrumb });
